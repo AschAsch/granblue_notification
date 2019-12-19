@@ -39,7 +39,7 @@ if response.status_code == 200:
                     "type": "message_create",
                     "message_create": {
                         "target": {
-                            "recipient_id": config.USER_ID
+                            "recipient_id": config.SEND_USER_ID
                         },
                         "message_data": {
                             "text": "[グラブル救援]\n" + txt

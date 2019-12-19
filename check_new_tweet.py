@@ -24,6 +24,13 @@ if response.status_code == 200:
             
             txt = tweetData[3] + " " + tweetData[4]
             
+            # 動作停止用ツイート
+            url = "https://api.twitter.com/1.1/statuses/update.json"
+            params = {
+                'status': "checked.",
+            }
+            res = twitter_oauth.twitter.post(url, params=params)
+            
             # Replyを送信する
             # url = "https://api.twitter.com/1.1/statuses/update.json"
             # params = {

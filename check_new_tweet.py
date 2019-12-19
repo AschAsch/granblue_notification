@@ -20,14 +20,36 @@ if response.status_code == 200:
         
         tweetData = tweet["text"].split()
         
-        if not tweetData[1].startswith('Lv'):
+        if "参戦ID" in tweet["text"]:
             
-            url = "https://api.twitter.com/1.1/statuses/update.json"
+            txt = tweetData[3] + " " + tweetData[4]
+            
+            # Replyを送信する
+            # url = "https://api.twitter.com/1.1/statuses/update.json"
+            # params = {
+            #     'status': "@" + config.SCREEN_NAME + "\n" + txt,
+            # }
+            # res = twitter_oauth.twitter.post(url, params=params)
+            
+            # DMを送信する
+            url = 'https://api.twitter.com/1.1/direct_messages/events/new.json'
+            headers = {'content-type': 'application/json'}
             params = {
-                'status': "@" + config.SCREEN_NAME + "\n" + tweetData[3] + " " + tweetData[4],
+                "event":{
+                    "type": "message_create",
+                    "message_create": {
+                        "target": {
+                            "recipient_id": config.USER_ID
+                        },
+                        "message_data": {
+                            "text": "[グラブル救援]\n" + txt
+                        }
+                   }
+                }
             }
+            params = json.dumps(params)
             
-            res = twitter_oauth.twitter.post(url, params=params)
+            res = twitter_oauth.twitter.post(url, headers=headers, data=params)
             
             if res.status_code == 200: 
                 

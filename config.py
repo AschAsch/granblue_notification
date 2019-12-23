@@ -1,10 +1,6 @@
 # coding: UTF-8
 import os
 from os.path import join, dirname
-from dotenv import load_dotenv
-
-dotenv_path = join(dirname(__file__), '.env')
-load_dotenv(dotenv_path)
 
 TWITTER_CONSUMER_KEY    = os.environ.get("TWITTER_CONSUMER_KEY")
 TWITTER_CONSUMER_SECRET = os.environ.get("TWITTER_CONSUMER_SECRET")
@@ -13,3 +9,5 @@ ACCESS_TOKEN_SECRET     = os.environ.get("ACCESS_TOKEN_SECRET")
 USER_ID                 = os.environ.get("USER_ID")
 SCREEN_NAME             = os.environ.get("SCREEN_NAME")
 SEND_USER_ID            = os.environ.get("SEND_USER_ID")
+PUBLIC_TWITTER_OAUTH_TOKEN = os.environ.get("PUBLIC_TWITTER_OAUTH_TOKEN")
+PUBLIC_TWITTER_OAUTH_TOKEN_SECRET = os.environ.get("PUBLIC_TWITTER_OAUTH_TOKEN_SECRET")

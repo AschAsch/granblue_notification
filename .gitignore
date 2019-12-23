@@ -1,3 +1,13 @@
 *.default
 __pycache__/
-
+bin/
+certifi/
+certifi-2019.11.28.dist-info/
+chardet/
+chardet-3.0.4.dist-info/
+idna/
+idna-2.8.dist-info/
+requests/
+requests-2.22.0.dist-info/
+urllib3/
+urllib3-1.25.7.dist-info/

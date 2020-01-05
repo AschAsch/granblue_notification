@@ -5,6 +5,7 @@ import twitter_oauth
 import csv
 import datetime
 import time
+import calendar
 
 def check_tweet():
 
@@ -12,7 +13,6 @@ def check_tweet():
     url = "https://api.twitter.com/1.1/statuses/user_timeline.json"
     params = {
         "user_id": config.USER_ID,
-        "since_id": "1208643212375539712" # 基準となるTWEET_ID
     }
     
     twitter_oauth.setPrivate()
@@ -20,98 +20,113 @@ def check_tweet():
     
     if res.status_code == 200:
         
-        # csvデータの読み込み
-        dataId = []
-        with open('tweet.csv') as f:
-            reader = csv.reader(f)
-            for row in reader:
-                dataId.append(str(row[1]))
-    
         timeline = json.loads(res.text)
+
         
         for tweet in timeline:
-            
-            tweetData = tweet["text"].split()
-            
-            if "参戦ID" in tweet["text"] and not tweetData[0] in dataId:
-                
-                tweetStatus = tweetData[0] + tweetData[1] + "\n" + tweetData[3] + " " + tweetData[4]
-                
-                # 新しい救援ツイートデータをcsvへ書き込む
-                with open('tweet.csv', 'a') as f:
-                    writer = csv.writer(f)
-                    tweetTimeUnix = str(time.time()).split(".")
-                    tweetData.insert(0, tweetTimeUnix[0])
-                    writer.writerows([tweetData])
-                    print(tweetData)
-                
-                
-                # Replyを送信する（希望によりコメントアウト中）
-                # url = "https://api.twitter.com/1.1/statuses/update.json"
-                # params = {
-                #     'status': "@" + config.SCREEN_NAME + "\n" + txt,
-                # }
-                # res = twitter_oauth.twitter.post(url, params=params)
-                
-                # DMを送信する
-                url = 'https://api.twitter.com/1.1/direct_messages/events/new.json'
-                headers = {'content-type': 'application/json'}
-                params = {
-                    "event":{
-                        "type": "message_create",
-                        "message_create": {
-                            "target": {
-                                "recipient_id": config.SEND_USER_ID
-                            },
-                            "message_data": {
-                                "text": "[グラブル救援]\n" + tweetStatus
-                            }
-                       }
-                    }
-                }
-                params = json.dumps(params)
-                
-                twitter_oauth.setPrivate()
-                res = twitter_oauth.twitter.post(url, headers=headers, data=params)
-                
-                if res.status_code == 200: 
-                    url = "https://api.twitter.com/1.1/statuses/destroy.json"
-                    params = {
-                        'id': tweet['id']
-                    }
-                    # 上記通知処理が完了したら元のツイートを削除する
-                    twitter_oauth.setPrivate()
-                    res = twitter_oauth.twitter.post(url, params=params)
-                    if not res.status_code == 200:
-                        print("delete error. status_code => " + str(res.status_code))
-        
-        
-        
-        
-        csvData = []
-        
-        with open('tweet.csv') as f:
-            reader = csv.reader(f)
-            for row in reader:
-                elapsedSec = int(time.time()) - int(row[0])
-                if (7 * 60) < elapsedSec: # 時間経過しているかチェックする(7分)
-                
-                    tweetStatus = row[1] + row[2] + "\n" + row[3] + "\n" + row[4] + " " + row[5] + "\n" + row[6]
-                    
-                    url = "https://api.twitter.com/1.1/statuses/update.json"
-                    params = {
-                        'status': tweetStatus,
-                    }
-                    
-                    # 公開アカウントへPOSTする
-                    twitter_oauth.setPublic()
-                    res = twitter_oauth.twitter.post(url, params=params)
-                    if not res.status_code == 200:
-                        csvData.append(row)
-                else:
-                    csvData.append(row)
 
-        # csvデータを書き込む
-        with open('tweet.csv', 'w') as f:
-            writer = csv.writer(f)
-            writer.writerows(csvData)
+            if tweet["text"].startswith("団"):
+                # 団のみに通知を行う
+
+                # tweetのunixTimeを取得する
+                time_utc = time.strptime(tweet["created_at"], '%a %b %d %H:%M:%S +0000 %Y')
+                tweet_time = calendar.timegm(time_utc)
+
+                # 7分前のunixTimeを取得する
+                now_time = int(time.time()) - (60 * 7)
+
+                # 指定時間が経過しているかチェックする
+                if 0 < (tweet_time - now_time):
+                    
+
+                    # 過去に通知処理を行っているか確認する
+                    if tweet["favorited"]:
+                        print(str(tweet['id']) + ' is pass.')
+                        pass
+                    else:
+                        # 通知処理を行う
+                        post_notification(tweet)
+
+
+                else:
+                    # 指定時間が経過している場合、公開アカウントへツイートを行う
+                    post_global(tweet)
+            else:
+                # 公開アカウントへツイートを行う
+                post_global(tweet)
+
+
+
+# 団員への通知を行う
+def post_notification(tweet):
+
+    # DMを送信する
+
+    tweetData = tweet["text"].split()
+
+    url = 'https://api.twitter.com/1.1/direct_messages/events/new.json'
+    headers = {'content-type': 'application/json'}
+    params = {
+        "event":{
+            "type": "message_create",
+            "message_create": {
+                "target": {
+                    "recipient_id": config.SEND_USER_ID
+                },
+                "message_data": {
+                    "text": "[グラブル救援]\n" + tweetData[5]
+                }
+           }
+        }
+    }
+    params = json.dumps(params)
+    
+    twitter_oauth.setPrivate()
+    res = twitter_oauth.twitter.post(url, headers=headers, data=params)
+    
+    if not res.status_code == 200:
+        print("direct_messages/events/new error. status_code => " + str(res.status_code))
+
+    
+    url = "https://api.twitter.com/1.1/favorites/create.json"
+    params = {
+        'id': tweet['id']
+    }
+
+    # 通知処理が成功した場合、該当tweetにfavoriteをcreateする
+    twitter_oauth.setPrivate()
+    res = twitter_oauth.twitter.post(url, params=params)
+    if not res.status_code == 200:
+        print("favorites/create error. status_code => " + str(res.status_code))
+
+
+
+# 公開アカウントへツイートを行う
+def post_global(tweet):
+
+    url = "https://api.twitter.com/1.1/statuses/update.json"
+    params = {
+        'status': tweet["text"],
+    }
+    
+    # 公開アカウントへPOSTする
+    twitter_oauth.setPublic()
+    res = twitter_oauth.twitter.post(url, params=params)
+
+    if res.status_code == 200:
+
+        url = "https://api.twitter.com/1.1/statuses/destroy.json"
+        params = {
+            'id': tweet['id']
+        }
+
+        # 上記通知処理が完了したら元のツイートを削除する
+        twitter_oauth.setPrivate()
+        res = twitter_oauth.twitter.post(url, params=params)
+        if not res.status_code == 200:
+            print("statuses/destroy error. status_code => " + str(res.status_code))
+    else:
+        print("statuses/update error. status_code => " + str(res.status_code))
+
+check_tweet()
+

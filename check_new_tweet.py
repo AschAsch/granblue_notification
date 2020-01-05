@@ -33,7 +33,7 @@ def check_tweet():
                 tweet_time = calendar.timegm(time_utc)
 
                 # 7分前のunixTimeを取得する
-                now_time = int(time.time()) - (60 * 7)
+                now_time = int(time.time()) - (60 * 70)
 
                 # 指定時間が経過しているかチェックする
                 if 0 < (tweet_time - now_time):

@@ -1,0 +1,12 @@
+{
+	"users": [
+		{
+			"user_id": "sample",
+			"rescue_user_id": "sample"
+		},
+		{
+			"user_id": "sample",
+			"rescue_user_id": "sample"
+		}
+	]
+}

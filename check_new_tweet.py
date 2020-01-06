@@ -6,8 +6,13 @@ import csv
 import datetime
 import time
 import calendar
+import pprint
 
 def check_tweet():
+
+    # ユーザー情報の読み込み
+    f = open("users.json", 'r')
+    users = json.load(f)
 
     
     url = "https://api.twitter.com/1.1/statuses/home_timeline.json"
@@ -17,13 +22,10 @@ def check_tweet():
     
     twitter_oauth.setPrivate()
     res = twitter_oauth.twitter.get(url, params=params)
-
-    print(res.status_code)
-
+    
     if res.status_code == 200:
         
         timeline = json.loads(res.text)
-
         
         for tweet in timeline:
 
@@ -46,8 +48,13 @@ def check_tweet():
                         print(str(tweet['id']) + ' is pass.')
                         pass
                     else:
-                        # 通知処理を行う
-                        post_notification(tweet)
+                        # 誰の救援ツイートか判断する
+                        for user in users['users']:
+                            if user['rescue_user_id'] == tweet['user']['id_str']:
+                                pass
+                            else:
+                                # 通知処理を行う
+                                post_notification(tweet, user['user_id'])
 
 
                 else:
@@ -60,7 +67,7 @@ def check_tweet():
 
 
 # 団員への通知を行う
-def post_notification(tweet):
+def post_notification(tweet, user_id):
 
     # DMを送信する
 
@@ -73,7 +80,7 @@ def post_notification(tweet):
             "type": "message_create",
             "message_create": {
                 "target": {
-                    "recipient_id": config.SEND_USER_ID
+                    "recipient_id": user_id
                 },
                 "message_data": {
                     "text": "[グラブル救援]\n" + tweetData[5]
@@ -130,5 +137,5 @@ def post_global(tweet):
     else:
         print("statuses/update error. status_code => " + str(res.status_code))
 
-check_tweet()
-
+def lambda_handler(event, context):
+    check_tweet()

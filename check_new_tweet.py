@@ -10,7 +10,7 @@ import calendar
 def check_tweet():
 
     
-    url = "https://api.twitter.com/1.1/statuses/user_timeline.json"
+    url = "https://api.twitter.com/1.1/statuses/home_timeline.json"
     params = {
         "user_id": config.USER_ID,
     }
@@ -33,7 +33,7 @@ def check_tweet():
                 tweet_time = calendar.timegm(time_utc)
 
                 # 7分前のunixTimeを取得する
-                now_time = int(time.time()) - (60 * 70)
+                now_time = int(time.time()) - (60 * 7)
 
                 # 指定時間が経過しているかチェックする
                 if 0 < (tweet_time - now_time):
@@ -128,5 +128,5 @@ def post_global(tweet):
     else:
         print("statuses/update error. status_code => " + str(res.status_code))
 
-check_tweet()
-
+def lambda_handler(event, context):
+    check_tweet()

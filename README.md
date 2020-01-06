@@ -7,6 +7,9 @@ Twitter救援を行った際に騎空団員のTwitterアカウントへReply、D
 * herokuで動作中（HerokuScheduler 10min）
 * heroku -> AWS Lamda+CloudWatchEventへ以降（1min)
 
+### 2020/01/06
+* 監視対象のタイムラインをuserからhomeへ変更（複数人からのPOSTに対応）
+
 ### 2020/01/05
 * ツイートチェックの方法をfavorites/createへ変更
 

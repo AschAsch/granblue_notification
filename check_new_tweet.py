@@ -17,7 +17,9 @@ def check_tweet():
     
     twitter_oauth.setPrivate()
     res = twitter_oauth.twitter.get(url, params=params)
-    
+
+    print(res.status_code)
+
     if res.status_code == 200:
         
         timeline = json.loads(res.text)
@@ -128,5 +130,5 @@ def post_global(tweet):
     else:
         print("statuses/update error. status_code => " + str(res.status_code))
 
-def lambda_handler(event, context):
-    check_tweet()
+check_tweet()
+
